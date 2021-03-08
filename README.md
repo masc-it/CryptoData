@@ -5,3 +5,4 @@
 
 - filter coins data to retrieve
 - multithreaded
+- update data till last minute
