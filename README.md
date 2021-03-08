@@ -1,5 +1,5 @@
 
-(Original repo)[https://github.com/gosuto-ai/candlestick_retriever]
+[Original repo](https://github.com/gosuto-ai/candlestick_retriever)
 
 # Enhancements
 
