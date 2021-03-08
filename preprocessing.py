@@ -1,5 +1,6 @@
 import os
 from datetime import date
+import pyarrow.parquet as pq
 
 import pandas as pd
 
@@ -74,9 +75,22 @@ def quick_clean(df):
     return df
 
 
-def write_raw_to_parquet(df, full_path):
-    """takes raw df and writes a parquet to disk"""
+def append_raw_to_parquet(df, full_path, limit_to_today=True):
+    """Takes raw df and appends it to an existing parquet file. If the file does not exist, it is created."""
+    df = polish_df(df, limit_to_today)
+    try:
+        df = pd.concat([pq.read_pandas(full_path).to_pandas(), df])
+    except OSError:
+        pass
+    df.to_parquet(full_path)
 
+def write_raw_to_parquet(df, full_path, limit_to_today=True):
+    """Takes raw df and writes it to an existing parquet file, overwriting existin data. If the file does not exist,
+    it is created."""
+    df = polish_df(df, limit_to_today)
+    df.to_parquet(full_path)
+
+def polish_df(df, limit_to_today=True):
     # some candlesticks do not span a full minute
     # these points are not reliable and thus filtered
     df = df[~(df['open_time'] - df['close_time'] != -59999)]
@@ -87,9 +101,9 @@ def write_raw_to_parquet(df, full_path):
     df = set_dtypes_compressed(df)
 
     # give all pairs the same nice cut-off
-    df = df[df.index < str(date.today())]
-
-    df.to_parquet(full_path)
+    if limit_to_today:
+        df = df[df.index < str(date.today())]
+    return df
 
 
 def groom_data(dirname='data'):
